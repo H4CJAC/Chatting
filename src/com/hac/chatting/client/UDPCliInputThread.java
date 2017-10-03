@@ -26,8 +26,7 @@ public class UDPCliInputThread implements Runnable {
         String input;
         long did;
         Message msg;
-        msg=new Message((byte) 0,(byte) 0,0,myId,0l,"",seraddr);
-        msg.setHcode(msg.hashCode());
+        msg=new Message((byte) 0,(byte) 0,myId,0l,"",seraddr,CHARSET);
         try {
             writeQueue.put(msg);
         } catch (InterruptedException e) {
@@ -49,8 +48,7 @@ public class UDPCliInputThread implements Runnable {
                     System.out.println("Message's size has to be no more than 450.");
                     continue;
                 }else {
-                    msg=new Message((byte) 2,(byte) 0,0,myId,did,input,seraddr);
-                    msg.setHcode(msg.hashCode());
+                    msg=new Message((byte) 2,(byte) 0,myId,did,input,seraddr,CHARSET);
                     writeQueue.put(msg);
                 }
             }

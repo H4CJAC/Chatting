@@ -1,16 +1,17 @@
 package com.hac.chatting.DTO;
 
 import com.hac.chatting.utils.CastUtil;
+import com.hac.chatting.utils.SHA;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 
-import static com.hac.chatting.conf.UDPConf.CHARSET;
-
 public class Message {
+    private final static Charset HCODECST=Charset.forName("latin1");
+
     private byte code;//0-上线，1-下线，2-消息，3-ack，4-重传,5-心跳
     private byte status;//0-成功，-1-失败
-    private int hcode;
+    private String hcode;//sha-256，32字节
     private long sid;
     private long did;
     private String msg;
@@ -20,32 +21,40 @@ public class Message {
     public Message(byte[] bs, int length, Charset charset,InetSocketAddress addr){
         code=bs[0];
         status=bs[1];
-        hcode=CastUtil.bs2i(bs,2);
-        sid=CastUtil.bs2l(bs,6);
-        did=CastUtil.bs2l(bs,14);
-        msg=new String(bs,22,length-22,charset);
+        hcode=new String(bs,2,32,HCODECST);
+        sid=CastUtil.bs2l(bs,34);
+        did=CastUtil.bs2l(bs,42);
+        msg=new String(bs,50,length-50,charset);
         this.addr=addr;
     }
 
     public int getBytes(byte[] bs,Charset charset){
         bs[0]=code;
         bs[1]=status;
-        CastUtil.i2bs(hcode,bs,2);
-        CastUtil.l2bs(sid,bs,6);
-        CastUtil.l2bs(did,bs,14);
+        byte[] hcodebs=hcode.getBytes(HCODECST);
+        CastUtil.bs2bs(hcodebs,bs,2);
+        CastUtil.l2bs(sid,bs,34);
+        CastUtil.l2bs(did,bs,42);
         byte[] msgbs=msg.getBytes(charset);
-        CastUtil.bs2bs(msgbs,bs,22);
-        return 22+msgbs.length;
+        CastUtil.bs2bs(msgbs,bs,50);
+        return 50+msgbs.length;
     }
 
-    public Message(byte code, byte status,int hcode, long sid, long did, String msg,InetSocketAddress addr) {
+    public Message(byte code, byte status, long sid, long did, String msg,InetSocketAddress addr,Charset charset) {
         this.code = code;
         this.status = status;
-        this.hcode=hcode;
         this.sid = sid;
         this.did = did;
         this.msg = msg;
         this.addr=addr;
+        byte[] msgbs=msg.getBytes(charset);
+        byte[] bs=new byte[18+msgbs.length];
+        bs[0]=code;
+        bs[1]=status;
+        CastUtil.l2bs(sid,bs,2);
+        CastUtil.l2bs(did,bs,10);
+        CastUtil.bs2bs(msgbs,bs,18);
+        this.hcode=new String(SHA.getSHA256Bs(bs),HCODECST);
     }
 
     public long getLastms() {
@@ -56,11 +65,11 @@ public class Message {
         this.lastms = lastms;
     }
 
-    public int getHcode() {
+    public String getHcode() {
         return hcode;
     }
 
-    public void setHcode(int hcode) {
+    public void setHcode(String hcode) {
         this.hcode = hcode;
     }
 

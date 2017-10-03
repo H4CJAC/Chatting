@@ -8,10 +8,10 @@ import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class UDPCliCheckThread implements Runnable {
-    private final Hashtable<Integer,Message> ackTable,ackedTable;
+    private final Hashtable<String,Message> ackTable,ackedTable;
     private final LinkedBlockingQueue<Message> writeQueue;
 
-    public UDPCliCheckThread(Hashtable<Integer, Message> ackTable, Hashtable<Integer, Message> ackedTable, LinkedBlockingQueue<Message> writeQueue) {
+    public UDPCliCheckThread(Hashtable<String, Message> ackTable, Hashtable<String, Message> ackedTable, LinkedBlockingQueue<Message> writeQueue) {
         this.ackTable = ackTable;
         this.ackedTable=ackedTable;
         this.writeQueue = writeQueue;
@@ -20,8 +20,8 @@ public class UDPCliCheckThread implements Runnable {
     @Override
     public void run() {
         System.out.println("UDPCliCheckThread on.");
-        Iterator<Map.Entry<Integer,Message>> acks;
-        Map.Entry<Integer,Message> ack;
+        Iterator<Map.Entry<String,Message>> acks;
+        Map.Entry<String,Message> ack;
         Message msg;
         while (true){
             try {

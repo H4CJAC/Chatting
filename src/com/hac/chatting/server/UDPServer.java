@@ -17,7 +17,7 @@ public class UDPServer implements Runnable {
 
     private final int PORT=23456;
     private final LinkedBlockingQueue<Message> writeQueue=new LinkedBlockingQueue<>();
-    private final Hashtable<Integer,Message> ackTable=new Hashtable<>(100),ackedTable=new Hashtable<>(100);
+    private final Hashtable<String,Message> ackTable=new Hashtable<>(100),ackedTable=new Hashtable<>(100);
     private final Hashtable<Long,InetSocketAddress> onlineTable=new Hashtable<>(100);
 
     public static void main(String[] args) {

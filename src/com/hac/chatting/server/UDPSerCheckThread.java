@@ -10,12 +10,14 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static com.hac.chatting.conf.UDPConf.CHARSET;
+
 public class UDPSerCheckThread implements Runnable {
-    private final Hashtable<Integer,Message> ackTable,ackedTable;
+    private final Hashtable<String,Message> ackTable,ackedTable;
     private final Hashtable<Long,InetSocketAddress> onlineTable;
     private final LinkedBlockingQueue<Message> writeQueue;
 
-    public UDPSerCheckThread(Hashtable<Integer, Message> ackTable, Hashtable<Integer, Message> ackedTable, Hashtable<Long, InetSocketAddress> onlineTable, LinkedBlockingQueue<Message> writeQueue) {
+    public UDPSerCheckThread(Hashtable<String, Message> ackTable, Hashtable<String, Message> ackedTable, Hashtable<Long, InetSocketAddress> onlineTable, LinkedBlockingQueue<Message> writeQueue) {
         this.ackTable = ackTable;
         this.ackedTable=ackedTable;
         this.onlineTable = onlineTable;
@@ -27,8 +29,7 @@ public class UDPSerCheckThread implements Runnable {
         synchronized (onlineTable){
             Set<Map.Entry<Long,InetSocketAddress>> addrs=onlineTable.entrySet();
             for(Map.Entry<Long,InetSocketAddress> addr:addrs){
-                msg=new Message((byte) 1,(byte) 0,0,offlineId,addr.getKey(),"",addr.getValue());
-                msg.setHcode(msg.hashCode());
+                msg=new Message((byte) 1,(byte) 0,offlineId,addr.getKey(),"",addr.getValue(),CHARSET);
                 writeQueue.put(msg);
             }
         }
@@ -37,8 +38,8 @@ public class UDPSerCheckThread implements Runnable {
     @Override
     public void run() {
         System.out.println("UDPSerCheckThread on.");
-        Iterator<Map.Entry<Integer,Message>> acks;
-        Map.Entry<Integer,Message> ack;
+        Iterator<Map.Entry<String,Message>> acks;
+        Map.Entry<String,Message> ack;
         while (true){
             try {
                 for (int i=0;i<50;i++){
@@ -65,9 +66,8 @@ public class UDPSerCheckThread implements Runnable {
                                     continue;
                                 }
                                 //一般包重传
-                                if (msg.getStatus()<6){//重传超过5次视为断线
+                                if (onlineTable.containsKey(msg.getDid())){//在线才重传
                                     msg.setCode((byte) 4);//重传码
-                                    msg.setStatus((byte) (msg.getStatus()+1));
                                     writeQueue.put(msg);
                                 }
                                 acks.remove();
@@ -84,8 +84,7 @@ public class UDPSerCheckThread implements Runnable {
                     }
                 }
                 onlineTable.forEach((k,v)->{//遍历发心跳
-                    Message msg=new Message((byte) 5,(byte) 0,0,0,k,"",v);
-                    msg.setHcode(msg.hashCode());
+                    Message msg=new Message((byte) 5,(byte) 0,0,k,"",v,CHARSET);
                     try {
                         writeQueue.put(msg);
                     } catch (InterruptedException e) {

@@ -14,11 +14,11 @@ import static com.hac.chatting.conf.UDPConf.CHARSET;
 
 public class UDPCliReadThread implements Runnable {
     private final LinkedBlockingQueue<Message> writeQueue;
-    private final Hashtable<Integer,Message> ackTable,ackedTable;
+    private final Hashtable<String,Message> ackTable,ackedTable;
     private final DatagramSocket ds;
     private final InetSocketAddress seraddr;
 
-    public UDPCliReadThread(LinkedBlockingQueue<Message> writeQueue,Hashtable<Integer, Message> ackTable, Hashtable<Integer,Message> ackedTable, DatagramSocket ds
+    public UDPCliReadThread(LinkedBlockingQueue<Message> writeQueue,Hashtable<String, Message> ackTable, Hashtable<String,Message> ackedTable, DatagramSocket ds
             ,InetSocketAddress seraddr) {
         this.writeQueue=writeQueue;
         this.ackTable = ackTable;
@@ -78,7 +78,7 @@ public class UDPCliReadThread implements Runnable {
                 }
                 break;
             case 4://重传
-                if (!ackedTable.contains(msg.getHcode())){
+                if (!ackedTable.containsKey(msg.getHcode())){
                     processMsg(msg);
                 }
                 break;

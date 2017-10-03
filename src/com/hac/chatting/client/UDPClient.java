@@ -18,7 +18,7 @@ public class UDPClient implements Runnable {
     private final String SERHOST="localhost";
     private final int SERPORT=23456;
     private final LinkedBlockingQueue<Message> writeQueue=new LinkedBlockingQueue<>();
-    private final Hashtable<Integer,Message> ackTable=new Hashtable<>(100),ackedTable=new Hashtable<>(100);
+    private final Hashtable<String,Message> ackTable=new Hashtable<>(100),ackedTable=new Hashtable<>(100);
     private long myId;
 
     public UDPClient(long myId) {
@@ -26,7 +26,7 @@ public class UDPClient implements Runnable {
     }
 
     public static void main(String[] args) {
-        UDPClient cli=new UDPClient(13);
+        UDPClient cli=new UDPClient(1232);
         Thread t=new Thread(cli);
         t.start();
     }
