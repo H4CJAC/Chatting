@@ -26,9 +26,7 @@ public class UDPClient implements Runnable {
     }
 
     public static void main(String[] args) {
-        UDPClient cli=new UDPClient(1232);
-        Thread t=new Thread(cli);
-        t.start();
+
     }
 
     @Override

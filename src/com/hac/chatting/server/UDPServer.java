@@ -18,12 +18,12 @@ public class UDPServer implements Runnable {
     private final int PORT=23456;
     private final LinkedBlockingQueue<Message> writeQueue=new LinkedBlockingQueue<>();
     private final Hashtable<String,Message> ackTable=new Hashtable<>(100),ackedTable=new Hashtable<>(100);
-    private final Hashtable<Long,InetSocketAddress> onlineTable=new Hashtable<>(100);
+    private final Hashtable<String,Long> user2UidTable;
+    private final Hashtable<Long,InetSocketAddress> onlineTable;
 
-    public static void main(String[] args) {
-        UDPServer ser=new UDPServer();
-        Thread t=new Thread(ser);
-        t.start();
+    public UDPServer(Hashtable<String, Long> user2UidTable, Hashtable<Long, InetSocketAddress> onlineTable) {
+        this.user2UidTable = user2UidTable;
+        this.onlineTable = onlineTable;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class UDPServer implements Runnable {
                 DatagramSocket ds=new DatagramSocket(PORT);
                 ){
             UDPSerReadThread udpSerReadThread=new UDPSerReadThread(writeQueue,ackTable,ackedTable,onlineTable,ds);
-            UDPSerCheckThread udpSerCheckThread =new UDPSerCheckThread(ackTable,ackedTable, onlineTable, writeQueue);
+            UDPSerCheckThread udpSerCheckThread =new UDPSerCheckThread(ackTable,ackedTable, onlineTable, writeQueue, user2UidTable);
             Thread usrt=new Thread(udpSerReadThread);
             Thread usct=new Thread(udpSerCheckThread);
             usrt.start();usct.start();

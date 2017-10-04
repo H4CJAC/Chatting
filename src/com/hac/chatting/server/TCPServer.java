@@ -1,6 +1,5 @@
 package com.hac.chatting.server;
 
-import com.hac.chatting.DTO.Message;
 import com.hac.chatting.DTO.TCPMsg;
 
 import java.io.IOException;
@@ -12,13 +11,13 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Hashtable;
 import java.util.Iterator;
-import java.util.Set;
 
 import static com.hac.chatting.conf.TCPConf.BUFSIZE;
 import static com.hac.chatting.conf.TCPConf.CHARSET;
 
 public class TCPServer implements Runnable {
     private final Hashtable<String,Long> user2UidTable=new Hashtable<>(100);
+    private final Hashtable<Long,InetSocketAddress> onlineTable=new Hashtable<>(100);
     private final int PORT=12345;
 
     public static void main(String[] args) {
@@ -28,15 +27,14 @@ public class TCPServer implements Runnable {
     }
 
     private TCPMsg processRead(TCPMsg msg){
-        System.out.println("code: "+msg.getCode()+" status: "+msg.getStatus()+" uid: "+msg.getUid()+" Username: "+msg.getUsername());
         switch (msg.getCode()){
             case 0://登陆
                 synchronized (user2UidTable){
-                    if (user2UidTable.containsKey(msg.getUsername())){
-                        msg.setStatus((byte) -1);//用户名已存在
-                        msg.setUsername("");
-                    }else if(msg.getUsername().length()>25){
+                    if(msg.getUsername().length()>25){
                         msg.setStatus((byte) -2);//名字过长
+                        msg.setUsername("");
+                    }else if (user2UidTable.containsKey(msg.getUsername())&&onlineTable.containsKey(user2UidTable.get(msg.getUsername()))) {
+                        msg.setStatus((byte) -1);//用户名已存在
                         msg.setUsername("");
                     }else {
                         long uid=msg.hashCode()|(System.currentTimeMillis()<<32);
@@ -53,6 +51,9 @@ public class TCPServer implements Runnable {
 
     @Override
     public void run() {
+        UDPServer udpser=new UDPServer(user2UidTable, onlineTable);
+        Thread t=new Thread(udpser);
+        t.start();
         System.out.println("TCPServer on.");
         ServerSocketChannel ssc=null;
         Selector selector=null;

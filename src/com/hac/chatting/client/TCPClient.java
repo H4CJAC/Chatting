@@ -27,10 +27,10 @@ public class TCPClient implements Runnable {
         System.out.println("TCPClient on.");
         try (
                 SocketChannel socketChannel=SocketChannel.open();
-                Scanner scanner=new Scanner(System.in);
                 ){
             ByteBuffer buffer=ByteBuffer.allocate(BUFSIZE);
             String username;
+            Scanner scanner=new Scanner(System.in);
             while((username=scanner.nextLine()).length()>25) System.out.println("Username's size has to be no more than 25.");
             TCPMsg msg=new TCPMsg((byte)0,(byte)0,0l,username);
             System.out.println("code: "+msg.getCode()+" status: "+msg.getStatus()+" uid: "+msg.getUid()+" Username: "+msg.getUsername());
@@ -44,6 +44,10 @@ public class TCPClient implements Runnable {
             msg=new TCPMsg(buffer,CHARSET);
             buffer.clear();
             System.out.println("code: "+msg.getCode()+" status: "+msg.getStatus()+" uid: "+msg.getUid()+" Username: "+msg.getUsername());
+            if (msg.getStatus()==-1)return;
+            UDPClient cli=new UDPClient(msg.getUid());
+            Thread t=new Thread(cli);
+            t.start();
         } catch (IOException e) {
             e.printStackTrace();
         }

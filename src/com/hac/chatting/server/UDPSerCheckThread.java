@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.hac.chatting.conf.UDPConf.CHARSET;
 
@@ -16,12 +15,14 @@ public class UDPSerCheckThread implements Runnable {
     private final Hashtable<String,Message> ackTable,ackedTable;
     private final Hashtable<Long,InetSocketAddress> onlineTable;
     private final LinkedBlockingQueue<Message> writeQueue;
+    private final Hashtable<String,Long> user2UidTable;
 
-    public UDPSerCheckThread(Hashtable<String, Message> ackTable, Hashtable<String, Message> ackedTable, Hashtable<Long, InetSocketAddress> onlineTable, LinkedBlockingQueue<Message> writeQueue) {
+    public UDPSerCheckThread(Hashtable<String, Message> ackTable, Hashtable<String, Message> ackedTable, Hashtable<Long, InetSocketAddress> onlineTable, LinkedBlockingQueue<Message> writeQueue, Hashtable<String, Long> user2UidTable) {
         this.ackTable = ackTable;
         this.ackedTable=ackedTable;
         this.onlineTable = onlineTable;
         this.writeQueue = writeQueue;
+        this.user2UidTable = user2UidTable;
     }
 
     private void iterSendOffline(long offlineId) throws InterruptedException {//下线消息群发
